@@ -1,0 +1,36 @@
+name: Sync Garmin to Xingzhe
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+    inputs:
+      sync_days:
+        description: "Number of past days to sync (default: 1)"
+        required: false
+        default: "1"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run sync
+        env:
+          GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
+          GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
+          XINGZHE_USERNAME: ${{ secrets.XINGZHE_USERNAME }}
+          XINGZHE_PASSWORD: ${{ secrets.XINGZHE_PASSWORD }}
+          SYNC_DAYS: ${{ github.event.inputs.sync_days || '1' }}
+        run: python main.py
