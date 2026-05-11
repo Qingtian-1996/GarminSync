@@ -11,8 +11,14 @@ class GarminClient:
     """Client for interacting with Garmin Connect."""
 
     def __init__(self):
-        self.email = os.environ["GARMIN_EMAIL"]
-        self.password = os.environ["GARMIN_PASSWORD"]
+        try:
+            self.email = os.environ["GARMIN_EMAIL"]
+            self.password = os.environ["GARMIN_PASSWORD"]
+        except KeyError as exc:
+            raise RuntimeError(
+                f"Missing required environment variable {exc}. "
+                "Set GARMIN_EMAIL and GARMIN_PASSWORD in your .env file or GitHub Secrets."
+            ) from exc
         self._client = Garmin(email=self.email, password=self.password)
 
     def login(self):

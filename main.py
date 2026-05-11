@@ -17,6 +17,7 @@ import os
 import sys
 from datetime import date, timedelta
 
+import requests
 from dotenv import load_dotenv
 
 from garmin import GarminClient
@@ -68,7 +69,7 @@ def main():
             logger.info("Downloading activity '%s' (id=%s) from Garmin …", title, activity_id)
             fit_data = garmin.download_activity(activity_id)
             xingzhe.upload_activity(fit_data, title)
-        except Exception as exc:  # noqa: BLE001
+        except (RuntimeError, requests.RequestException, OSError) as exc:
             logger.error("Failed to sync activity '%s': %s", title, exc)
             errors += 1
 

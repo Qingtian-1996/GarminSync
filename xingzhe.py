@@ -22,8 +22,14 @@ class XingzheClient:
     """Client for interacting with Xingzhe (行者)."""
 
     def __init__(self):
-        self.username = os.environ["XINGZHE_USERNAME"]
-        self.password = os.environ["XINGZHE_PASSWORD"]
+        try:
+            self.username = os.environ["XINGZHE_USERNAME"]
+            self.password = os.environ["XINGZHE_PASSWORD"]
+        except KeyError as exc:
+            raise RuntimeError(
+                f"Missing required environment variable {exc}. "
+                "Set XINGZHE_USERNAME and XINGZHE_PASSWORD in your .env file or GitHub Secrets."
+            ) from exc
         self._session = requests.Session()
 
     def login(self):
@@ -40,6 +46,8 @@ class XingzheClient:
             raise RuntimeError("Failed to retrieve RSA public key from Xingzhe login page")
 
         rd_cookie = response.cookies.get("rd", "")
+        # Xingzhe requires the password to be combined with the "rd" session cookie
+        # value before RSA encryption, as an extra authentication challenge.
         safe_password = self.password + ";" + rd_cookie
         recipient_key = RSA.import_key(match.group(1))
         cipher = PKCS1_v1_5.new(recipient_key)
